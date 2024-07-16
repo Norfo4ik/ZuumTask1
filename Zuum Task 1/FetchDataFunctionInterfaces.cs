@@ -8,7 +8,7 @@ namespace Zuum_Task_1
 {
     interface IApiService
     {
-        Task<ApiResponse> FetchDataAsynk();
+        Task<ApiResponse> FetchDataAsync();
     }
 
     public class ApiResponse
