@@ -21,15 +21,14 @@ namespace Zuum_Task_1
 
     interface ILoggingService
     {
-        Task LogSuccessAsync(ApiResponse response);
-        Task LogFailureAsynk(string errorMessage);
+        Task LogAsync(ApiResponse response);
         Task <IEnumerable<LogEntry>> GetLogsAsync(string from,  string to);
     }
 
     public class LogEntry
     {
         public string Id { get; set; }
-        public DateTime Timestamp { get; set; }
+        public DateTimeOffset? Timestamp { get; set; }
         public bool IsSuccess { get; set; }
         public string ErrorMessage { get; set; }
     }
