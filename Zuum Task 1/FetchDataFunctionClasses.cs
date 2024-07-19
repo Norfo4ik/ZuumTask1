@@ -10,15 +10,22 @@ using Azure;
 
 namespace Zuum_Task_1
 {
-
     public class LogTableStorageClient
     {
         private readonly TableClient _tableClient;
+        private readonly string connectionString = "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;";
+        private readonly string tableName = "LoggingAttemptResults";
 
-        public LogTableStorageClient(string connectionString, string tableName)
+        public LogTableStorageClient()
         {
             var serviceClient = new TableServiceClient(connectionString);
             _tableClient = serviceClient.GetTableClient(tableName);
+        }
+
+        public LogTableStorageClient(string _connectionString, string _tableName)
+        {
+            var serviceClient = new TableServiceClient(_connectionString);
+            _tableClient = serviceClient.GetTableClient(_tableName);
         }
 
         public TableClient GetTableClient()
@@ -26,16 +33,6 @@ namespace Zuum_Task_1
             return _tableClient;
         }
 
-    }
-
-    public class LogEntity : ITableEntity
-    {
-        public string PartitionKey { get; set; }
-        public string RowKey { get; set; }
-        public DateTimeOffset? Timestamp { get; set; }
-        public ETag ETag { get; set; } = ETag.All;
-        public bool IsSuccess { get; set; }
-        public string ErrorMessage { get; set; }
     }
 
     public class ApiService : IApiService
@@ -71,6 +68,11 @@ namespace Zuum_Task_1
     {
         private readonly TableClient _tableClient;
 
+        public LoggingService(TableClient client)
+        {
+            _tableClient = client;
+        }
+
         public LoggingService(LogTableStorageClient logTableStorageClient) 
         { 
         
@@ -94,26 +96,24 @@ namespace Zuum_Task_1
         
         }
 
-        public async Task<IEnumerable<LogEntry>> GetLogsAsync(string from, string to) 
+        public async Task<IEnumerable<LogEntity>> GetLogsAsync(string from, string to) 
         { 
-        
+            
             var fromTimestamp = DateTime.Parse(from);
             var toTimestamp = DateTime.Parse(to);
-            var logs = _tableClient.Query<LogEntity>(log => log.Timestamp >= fromTimestamp && log.Timestamp <= toTimestamp);
 
-             return logs.Select(log => new LogEntry 
-            { 
-            
-                Id = log.RowKey,
+            Pageable<LogEntity> logs = _tableClient.Query<LogEntity>(filter: $"Timestamp gt '{fromTimestamp:O}' and Timestamp lt '{toTimestamp:O}'");
+
+             return logs.Select(log => new LogEntity
+             {
+                
+                PartitionKey = log.PartitionKey,
+                RowKey = log.RowKey,
                 Timestamp = log.Timestamp,
                 IsSuccess = log.IsSuccess,
                 ErrorMessage = log.ErrorMessage
 
-            }).ToList();
-        
-        }
-    
+            }).ToList();        
+        }    
     }
-
-
 }

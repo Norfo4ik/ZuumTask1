@@ -1,8 +1,10 @@
-﻿using System;
+﻿using Azure;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Azure.Data.Tables;
 
 namespace Zuum_Task_1
 {
@@ -22,13 +24,15 @@ namespace Zuum_Task_1
     interface ILoggingService
     {
         Task LogAsync(ApiResponse response);
-        Task <IEnumerable<LogEntry>> GetLogsAsync(string from,  string to);
+        Task <IEnumerable<LogEntity>> GetLogsAsync(string from,  string to);
     }
 
-    public class LogEntry
+    public class LogEntity : ITableEntity
     {
-        public string Id { get; set; }
+        public string PartitionKey { get; set; }
+        public string RowKey { get; set; }
         public DateTimeOffset? Timestamp { get; set; }
+        public ETag ETag { get; set; } = ETag.All;
         public bool IsSuccess { get; set; }
         public string ErrorMessage { get; set; }
     }
@@ -38,6 +42,4 @@ namespace Zuum_Task_1
         Task StorePayloadAsync(string payload);
         Task<string> GetPayloadAsync(string logId);
     }
-
-
 }

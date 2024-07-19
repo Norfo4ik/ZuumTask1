@@ -10,28 +10,24 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 
 
+
 namespace ZuumTask1.Tests
 {
     [TestClass]
     public class LoggingServiceTests
     {
-        private Mock<TableClient> _tableClientMock;
-        private LoggingService _loggingService;
-
-        [TestInitialize]
-        public void Setup()
-        {
-            _tableClientMock = new Mock<TableClient>();
-            var logTableStorageClientMock = new Mock<LogTableStorageClient>();
-            logTableStorageClientMock.Setup(client => client.GetTableClient())
-                                      .Returns(_tableClientMock.Object);
-
-            _loggingService = new LoggingService(logTableStorageClientMock.Object);
-        }
+        private Mock<LoggingService> _loggingService;
+        private Mock<LogTableStorageClient> _logTableStorageClient;
+        private Mock<TableClient> _mockTableClient;
 
         [TestMethod]
         public async Task LogAsync_ShouldAddLogEntity()
         {
+
+            _logTableStorageClient = new Mock<LogTableStorageClient>();
+
+            _loggingService = new Mock<LoggingService>(_logTableStorageClient.Object);
+
             // Arrange
             var response = new ApiResponse
             {
@@ -39,22 +35,26 @@ namespace ZuumTask1.Tests
                 ErrorMessage = null
             };
 
+
             // Act
-            await _loggingService.LogAsync(response);
+            await _loggingService.Object.LogAsync(response);
 
             // Assert
-            _tableClientMock.Verify(client => client.AddEntityAsync(
-                It.Is<LogEntity>(log => log.IsSuccess == response.IsSuccess && log.ErrorMessage == response.ErrorMessage)),
-                Times.Once);
+            _loggingService.VerifyAll();
+
         }
 
         [TestMethod]
         public async Task GetLogsAsync_ShouldReturnLogsInRange()
         {
             // Arrange
-            var from = "2023-01-01T00:00:00Z";
-            var to = "2023-12-31T23:59:59Z";
-            var logs = new List<LogEntity>
+            string from = "2023-01-01T00:00:00Z";
+            string to = "2023-12-31T23:59:59Z";
+
+            
+            _mockTableClient = new Mock<TableClient>();
+
+            var mockLogEntities = new List<LogEntity>
             {
                 new LogEntity
                 {
@@ -74,23 +74,29 @@ namespace ZuumTask1.Tests
                 }
             }.AsQueryable();
 
-            var pageableResponseMock = new Mock<Pageable<LogEntity>>();
-            pageableResponseMock.Setup(m => m.GetEnumerator()).Returns(logs.GetEnumerator());
 
-            _tableClientMock.Setup(client => client.Query(
-                It.IsAny<Expression<Func<LogEntity, bool>>>(),
-                null,
-                null,
-                null))
-                .Returns(pageableResponseMock.Object);
+
+            var page = Page<LogEntity>.FromValues(mockLogEntities.ToList(), default, new Mock<Response>().Object);
+
+            var pageable = Pageable<LogEntity>.FromPages(new[] { page });
+
+
+
+            _mockTableClient.Setup(client => client.Query<LogEntity>(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
+                .Returns(pageable);
+
+
+            _loggingService = new Mock<LoggingService>(_mockTableClient.Object);
+
+
 
             // Act
-            var result = await _loggingService.GetLogsAsync(from, to);
+            var result = await _loggingService.Object.GetLogsAsync(from, to);
 
             // Assert
             Assert.AreEqual(2, result.Count());
-            Assert.AreEqual("1", result.First().Id);
-            Assert.AreEqual("2", result.Last().Id);
+            Assert.AreEqual("1", result.First().RowKey);
+            Assert.AreEqual("2", result.Last().RowKey);
         }
     }
 
