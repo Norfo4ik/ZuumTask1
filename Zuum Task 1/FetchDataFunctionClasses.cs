@@ -1,31 +1,43 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using System.Net.Http;
 using Azure.Data.Tables;
-using System.Runtime.CompilerServices;
 using Azure;
+using Microsoft.Extensions.Configuration;
+using Azure.Storage.Blobs;
 
 namespace Zuum_Task_1
 {
     public class LogTableStorageClient
     {
+
+        private readonly IConfiguration _configuration;
         private readonly TableClient _tableClient;
-        private readonly string connectionString = "AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;DefaultEndpointsProtocol=http;BlobEndpoint=http://127.0.0.1:10000/devstoreaccount1;QueueEndpoint=http://127.0.0.1:10001/devstoreaccount1;TableEndpoint=http://127.0.0.1:10002/devstoreaccount1;";
-        private readonly string tableName = "LoggingAttemptResults";
 
         public LogTableStorageClient()
         {
+
+            string connectionString = 
+                _configuration.GetValue<string>("ConnectionString");
+
+            string tableName = 
+                _configuration.GetValue<string>("TableName");
+
             var serviceClient = new TableServiceClient(connectionString);
             _tableClient = serviceClient.GetTableClient(tableName);
         }
 
-        public LogTableStorageClient(string _connectionString, string _tableName)
+        public LogTableStorageClient(IConfiguration config)
         {
-            var serviceClient = new TableServiceClient(_connectionString);
-            _tableClient = serviceClient.GetTableClient(_tableName);
+
+            _configuration = config;
+            string connectionString = _configuration.GetValue<string>("ConnectionString");
+            string tableName = _configuration.GetValue<string>("TableName");
+
+            var serviceClient = new TableServiceClient(connectionString);
+            _tableClient = serviceClient.GetTableClient(tableName);
         }
 
         public TableClient GetTableClient()
@@ -116,4 +128,15 @@ namespace Zuum_Task_1
             }).ToList();        
         }    
     }
+
+
+    //public class BlobStorageService : IBlobStorageService
+    //{
+    //    private readonly BlobServiceClient _blobServiceClient;
+
+    //    public BlobStorageService(BlobServiceClient blobServiceClient) 
+    //    {
+    //        _blobServiceClient = blobServiceClient;
+    //    }
+    //}
 }

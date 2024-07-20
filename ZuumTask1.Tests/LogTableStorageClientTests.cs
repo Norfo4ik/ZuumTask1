@@ -1,6 +1,6 @@
-using Azure.Data.Tables;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
 using Zuum_Task_1;
+using Microsoft.Extensions.Configuration;
+using Moq;
 
 
 namespace ZuumTask1.Tests
@@ -9,11 +9,32 @@ namespace ZuumTask1.Tests
     public class LogTableStorageClientTests
     {
         private LogTableStorageClient _logTableStorageClient;
+        
 
         [TestInitialize]
         public void Setup()
         {
-            _logTableStorageClient = new LogTableStorageClient("UseDevelopmentStorage=true;", "TestTable");
+            var configurationStringSectionMock = new Mock<IConfigurationSection>();
+            var tableNameSectionMock = new Mock<IConfigurationSection>();
+            var configurationMock = new Mock<IConfiguration>();
+
+            configurationStringSectionMock
+                .Setup(x => x.Value)
+                .Returns("UseDevelopmentStorage=true");
+
+            tableNameSectionMock
+                .Setup(x => x.Value)
+                .Returns("TestTable");
+
+            configurationMock
+                .Setup(x => x.GetSection("ConnectionString"))
+                .Returns(configurationStringSectionMock.Object);
+
+            configurationMock
+                .Setup(x => x.GetSection("TableName"))
+                .Returns(configurationStringSectionMock.Object);
+
+            _logTableStorageClient = new LogTableStorageClient(configurationMock.Object);
         }
 
         [TestMethod]

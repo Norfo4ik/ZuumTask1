@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
+using Microsoft.Extensions.Configuration;
 
 
 
@@ -20,11 +21,44 @@ namespace ZuumTask1.Tests
         private Mock<LogTableStorageClient> _logTableStorageClient;
         private Mock<TableClient> _mockTableClient;
 
+        public static IConfiguration InitConfiguration()
+        {
+            var config = new ConfigurationBuilder().AddUserSecrets<LoggingServiceTests>().Build();
+            return config;
+        }
+
+        
+
         [TestMethod]
         public async Task LogAsync_ShouldAddLogEntity()
         {
+            var config = InitConfiguration();
 
-            _logTableStorageClient = new Mock<LogTableStorageClient>();
+            string connectionStr = config.GetValue<string>("ConnectionString");
+            string tableName = config.GetValue<string>("TableName");
+
+
+            var configurationStringSectionMock = new Mock<IConfigurationSection>();
+            var tableNameSectionMock = new Mock<IConfigurationSection>();
+            var configurationMock = new Mock<IConfiguration>();
+
+            configurationStringSectionMock
+                .Setup(x => x.Value)
+                .Returns(connectionStr);
+
+            tableNameSectionMock
+                .Setup(x => x.Value)
+                .Returns(tableName);
+
+            configurationMock
+                .Setup(x => x.GetSection("ConnectionString"))
+                .Returns(configurationStringSectionMock.Object);
+
+            configurationMock
+                .Setup(x => x.GetSection("TableName"))
+                .Returns(tableNameSectionMock.Object);
+
+            _logTableStorageClient = new Mock<LogTableStorageClient>(configurationMock.Object);
 
             _loggingService = new Mock<LoggingService>(_logTableStorageClient.Object);
 
