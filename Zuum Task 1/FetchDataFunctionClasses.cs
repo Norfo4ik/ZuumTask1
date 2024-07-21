@@ -7,6 +7,9 @@ using Azure.Data.Tables;
 using Azure;
 using Microsoft.Extensions.Configuration;
 using Azure.Storage.Blobs;
+using System.IO;
+using System.Text;
+using Azure.Storage.Blobs.Models;
 
 namespace Zuum_Task_1
 {
@@ -14,44 +17,34 @@ namespace Zuum_Task_1
     public class PayloadBlobStorageClient
     {
         private readonly IConfiguration _configuration;
-        private readonly BlobClient _blobContainerClient;
-        
-
-        public PayloadBlobStorageClient()
-        {
-            string connectionString =
-                _configuration.GetValue<string>("ConnectionString");
-
-            string containerName =
-                _configuration.GetValue<string>("containerName");
-
-            var container = new BlobContainerClient(connectionString, containerName);
-
-            _blobContainerClient = container.GetBlobClient(containerName);
-        }
+        private readonly BlobContainerClient _containerClient;
 
         public PayloadBlobStorageClient(IConfiguration config)
         {
             _configuration = config;
             string connectionString = _configuration.GetValue<string>("ConnectionString");
-            string containerName = _configuration.GetValue<string>("containerName");
 
-            var container = new BlobContainerClient(connectionString, containerName);
+            string containerName =
+                _configuration.GetValue<string>("ContainerName");
 
-            _blobContainerClient = container.GetBlobClient(containerName);
+            var serviceClient = new BlobServiceClient(connectionString);
+
+            _containerClient = serviceClient.CreateBlobContainer(containerName);
         }
 
+        public BlobContainerClient GetContainerClient()
+        {
+            return _containerClient;
+        }
     }
 
     public class LogTableStorageClient
     {
-
         private readonly IConfiguration _configuration;
         private readonly TableClient _tableClient;
 
         public LogTableStorageClient()
         {
-
             string connectionString = 
                 _configuration.GetValue<string>("ConnectionString");
 
@@ -65,7 +58,6 @@ namespace Zuum_Task_1
 
         public LogTableStorageClient(IConfiguration config)
         {
-
             _configuration = config;
             string connectionString = _configuration.GetValue<string>("ConnectionString");
             string tableName = _configuration.GetValue<string>("TableName");
@@ -78,7 +70,6 @@ namespace Zuum_Task_1
         {
             return _tableClient;
         }
-
     }
 
     public class ApiService : IApiService
@@ -114,21 +105,18 @@ namespace Zuum_Task_1
     {
         private readonly TableClient _tableClient;
 
-        public LoggingService(TableClient client)
+        public LoggingService(TableClient client) //Rework this as this is a copy of original constructor for tests
         {
             _tableClient = client;
         }
 
         public LoggingService(LogTableStorageClient logTableStorageClient) 
-        { 
-        
+        {        
             _tableClient = logTableStorageClient.GetTableClient();
-
         }
 
         public async Task LogAsync(ApiResponse response) 
         {
-
             var log = new LogEntity
             {
                 PartitionKey = "Log",
@@ -138,21 +126,18 @@ namespace Zuum_Task_1
                 ErrorMessage = response.ErrorMessage
             };
 
-            await _tableClient.AddEntityAsync(log);
-        
+            await _tableClient.AddEntityAsync(log);        
         }
 
         public async Task<IEnumerable<LogEntity>> GetLogsAsync(string from, string to) 
-        { 
-            
+        {             
             var fromTimestamp = DateTime.Parse(from);
             var toTimestamp = DateTime.Parse(to);
 
             Pageable<LogEntity> logs = _tableClient.Query<LogEntity>(filter: $"Timestamp gt '{fromTimestamp:O}' and Timestamp lt '{toTimestamp:O}'");
 
              return logs.Select(log => new LogEntity
-             {
-                
+             {                
                 PartitionKey = log.PartitionKey,
                 RowKey = log.RowKey,
                 Timestamp = log.Timestamp,
@@ -163,5 +148,53 @@ namespace Zuum_Task_1
         }    
     }
 
-    
+    public class BlobStorageService : IBlobStorageService
+    {
+        private readonly BlobContainerClient _containerClient;
+
+        public BlobStorageService(PayloadBlobStorageClient payloadBlobStorageClient) 
+        {
+            _containerClient = payloadBlobStorageClient.GetContainerClient();   
+        }
+
+        public async Task StorePayloadAsync(string payload)
+        {
+            string blobName = Guid.NewGuid().ToString() + ".txt";
+            string filePath = Path.Combine(Path.GetTempPath(), blobName);
+
+            File.WriteAllText(filePath, payload);            
+
+            BlobClient blobClient = _containerClient.GetBlobClient(blobName);
+
+            await blobClient.UploadAsync(filePath);
+        }
+
+
+        public async Task GetPayloadAsync(List<string> blobs)
+        {
+            foreach (var blob in blobs) 
+            {
+                string filePath = Path.Combine(Path.GetTempPath(), blob);
+                BlobClient blobClient = _containerClient.GetBlobClient(blob);
+                BlobDownloadInfo download = await blobClient.DownloadAsync();
+
+                using (var fileStream = File.OpenWrite(filePath))
+                {
+                    await download.Content.CopyToAsync(fileStream);
+                }
+            }
+        }
+
+        public async Task<List<string>> ListBlobsAsync()
+        {
+            List<string> blobList = new List<string>();            
+
+            await foreach (var blobItems in _containerClient.GetBlobsAsync())
+            {
+                blobList.Add(blobItems.Name);
+            }
+
+            return blobList;
+        }
+    }
 }
