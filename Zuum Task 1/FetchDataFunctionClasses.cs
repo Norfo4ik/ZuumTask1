@@ -10,6 +10,39 @@ using Azure.Storage.Blobs;
 
 namespace Zuum_Task_1
 {
+
+    public class PayloadBlobStorageClient
+    {
+        private readonly IConfiguration _configuration;
+        private readonly BlobClient _blobContainerClient;
+        
+
+        public PayloadBlobStorageClient()
+        {
+            string connectionString =
+                _configuration.GetValue<string>("ConnectionString");
+
+            string containerName =
+                _configuration.GetValue<string>("containerName");
+
+            var container = new BlobContainerClient(connectionString, containerName);
+
+            _blobContainerClient = container.GetBlobClient(containerName);
+        }
+
+        public PayloadBlobStorageClient(IConfiguration config)
+        {
+            _configuration = config;
+            string connectionString = _configuration.GetValue<string>("ConnectionString");
+            string containerName = _configuration.GetValue<string>("containerName");
+
+            var container = new BlobContainerClient(connectionString, containerName);
+
+            _blobContainerClient = container.GetBlobClient(containerName);
+        }
+
+    }
+
     public class LogTableStorageClient
     {
 
@@ -26,6 +59,7 @@ namespace Zuum_Task_1
                 _configuration.GetValue<string>("TableName");
 
             var serviceClient = new TableServiceClient(connectionString);
+
             _tableClient = serviceClient.GetTableClient(tableName);
         }
 
@@ -129,14 +163,5 @@ namespace Zuum_Task_1
         }    
     }
 
-
-    //public class BlobStorageService : IBlobStorageService
-    //{
-    //    private readonly BlobServiceClient _blobServiceClient;
-
-    //    public BlobStorageService(BlobServiceClient blobServiceClient) 
-    //    {
-    //        _blobServiceClient = blobServiceClient;
-    //    }
-    //}
+    
 }
