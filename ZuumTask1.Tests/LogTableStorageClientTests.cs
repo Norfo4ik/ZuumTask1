@@ -1,8 +1,3 @@
-using Zuum_Task_1;
-using Microsoft.Extensions.Configuration;
-using Moq;
-
-
 namespace ZuumTask1.Tests
 {
     [TestClass]

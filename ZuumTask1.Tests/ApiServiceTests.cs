@@ -1,17 +1,8 @@
-﻿using Microsoft.VisualStudio.TestTools.UnitTesting;
-using Zuum_Task_1;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Moq;
+﻿using Moq;
 using Moq.Protected;
-using System.Net.Http;
 using System.Net;
-using Azure;
 
-namespace Zuum_Task_1.Tests
+namespace ZuumTask1.Tests
 {
     [TestClass]
     public class ApiServiceTests

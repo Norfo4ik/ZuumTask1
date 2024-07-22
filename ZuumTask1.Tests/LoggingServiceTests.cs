@@ -1,15 +1,6 @@
 ﻿using Azure;
 using Azure.Data.Tables;
-using Zuum_Task_1;
 using Moq;
-using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
-using System.Linq.Expressions;
-
-
 
 namespace ZuumTask1.Tests
 {

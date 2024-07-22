@@ -5,13 +5,11 @@ using System.Threading.Tasks;
 using System.Net.Http;
 using Azure.Data.Tables;
 using Azure;
-using Microsoft.Extensions.Configuration;
 using Azure.Storage.Blobs;
 using System.IO;
-using System.Text;
 using Azure.Storage.Blobs.Models;
 
-namespace Zuum_Task_1
+namespace ZuumTask1
 {
 
     public class PayloadBlobStorageClient

@@ -4,9 +4,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
 
-namespace Zuum_Task_1
+namespace ZuumTask1
 {
-    interface IApiService
+    public interface IApiService
     {
         Task<ApiResponse> FetchDataAsync();
     }
@@ -19,7 +19,7 @@ namespace Zuum_Task_1
 
     }
 
-    interface ILoggingService
+    public interface ILoggingService
     {
         Task LogAsync(ApiResponse response);
         Task <IEnumerable<LogEntity>> GetLogsAsync(string from,  string to);
@@ -35,7 +35,7 @@ namespace Zuum_Task_1
         public string ErrorMessage { get; set; }
     }
 
-    interface IBlobStorageService
+    public interface IBlobStorageService
     {
         Task StorePayloadAsync(string payload);
         Task GetPayloadAsync(List<string> blobs);
