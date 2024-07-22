@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Linq.Expressions;
-using Microsoft.Extensions.Configuration;
 
 
 
@@ -21,44 +20,11 @@ namespace ZuumTask1.Tests
         private Mock<LogTableStorageClient> _logTableStorageClient;
         private Mock<TableClient> _mockTableClient;
 
-        public static IConfiguration InitConfiguration()
-        {
-            var config = new ConfigurationBuilder().AddUserSecrets<LoggingServiceTests>().Build();
-            return config;
-        }
-
-        
-
         [TestMethod]
         public async Task LogAsync_ShouldAddLogEntity()
         {
-            var config = InitConfiguration();
 
-            string connectionStr = config.GetValue<string>("ConnectionString");
-            string tableName = config.GetValue<string>("TableName");
-
-
-            var configurationStringSectionMock = new Mock<IConfigurationSection>();
-            var tableNameSectionMock = new Mock<IConfigurationSection>();
-            var configurationMock = new Mock<IConfiguration>();
-
-            configurationStringSectionMock
-                .Setup(x => x.Value)
-                .Returns(connectionStr);
-
-            tableNameSectionMock
-                .Setup(x => x.Value)
-                .Returns(tableName);
-
-            configurationMock
-                .Setup(x => x.GetSection("ConnectionString"))
-                .Returns(configurationStringSectionMock.Object);
-
-            configurationMock
-                .Setup(x => x.GetSection("TableName"))
-                .Returns(tableNameSectionMock.Object);
-
-            _logTableStorageClient = new Mock<LogTableStorageClient>(configurationMock.Object);
+            _logTableStorageClient = new Mock<LogTableStorageClient>("UseDevelopmentStorage=true;", "LoggingAttemptResults");
 
             _loggingService = new Mock<LoggingService>(_logTableStorageClient.Object);
 
@@ -85,7 +51,7 @@ namespace ZuumTask1.Tests
             string from = "2023-01-01T00:00:00Z";
             string to = "2023-12-31T23:59:59Z";
 
-            
+
             _mockTableClient = new Mock<TableClient>();
 
             var mockLogEntities = new List<LogEntity>
@@ -113,9 +79,7 @@ namespace ZuumTask1.Tests
             var page = Page<LogEntity>.FromValues(mockLogEntities.ToList(), default, new Mock<Response>().Object);
 
             var pageable = Pageable<LogEntity>.FromPages(new[] { page });
-
-
-
+                        
             _mockTableClient.Setup(client => client.Query<LogEntity>(It.IsAny<string>(), It.IsAny<int?>(), It.IsAny<IEnumerable<string>>(), It.IsAny<CancellationToken>()))
                 .Returns(pageable);
 

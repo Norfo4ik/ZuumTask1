@@ -16,20 +16,15 @@ namespace Zuum_Task_1
 
     public class PayloadBlobStorageClient
     {
-        private readonly IConfiguration _configuration;
         private readonly BlobContainerClient _containerClient;
 
-        public PayloadBlobStorageClient(IConfiguration config)
+        public PayloadBlobStorageClient(string connectionString, string containerName)
         {
-            _configuration = config;
-            string connectionString = _configuration.GetValue<string>("ConnectionString");
-
-            string containerName =
-                _configuration.GetValue<string>("ContainerName");
 
             var serviceClient = new BlobServiceClient(connectionString);
 
-            _containerClient = serviceClient.CreateBlobContainer(containerName);
+            _containerClient = serviceClient.GetBlobContainerClient(containerName);
+
         }
 
         public BlobContainerClient GetContainerClient()
@@ -40,28 +35,10 @@ namespace Zuum_Task_1
 
     public class LogTableStorageClient
     {
-        private readonly IConfiguration _configuration;
         private readonly TableClient _tableClient;
 
-        public LogTableStorageClient()
+        public LogTableStorageClient(string connectionString, string tableName)
         {
-            string connectionString = 
-                _configuration.GetValue<string>("ConnectionString");
-
-            string tableName = 
-                _configuration.GetValue<string>("TableName");
-
-            var serviceClient = new TableServiceClient(connectionString);
-
-            _tableClient = serviceClient.GetTableClient(tableName);
-        }
-
-        public LogTableStorageClient(IConfiguration config)
-        {
-            _configuration = config;
-            string connectionString = _configuration.GetValue<string>("ConnectionString");
-            string tableName = _configuration.GetValue<string>("TableName");
-
             var serviceClient = new TableServiceClient(connectionString);
             _tableClient = serviceClient.GetTableClient(tableName);
         }
@@ -105,7 +82,7 @@ namespace Zuum_Task_1
     {
         private readonly TableClient _tableClient;
 
-        public LoggingService(TableClient client) //Rework this as this is a copy of original constructor for tests
+        public LoggingService(TableClient client)
         {
             _tableClient = client;
         }
