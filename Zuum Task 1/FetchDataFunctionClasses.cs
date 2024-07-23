@@ -56,13 +56,13 @@ namespace ZuumTask1
             _httpClient = httpClient;
         }
 
-        public async Task<ApiResponse> FetchDataAsync()
+        public async Task<ApiResponse> FetchDataAsync(string URL)
         {
             var responce = new ApiResponse();
 
             try
             {
-                var result = await _httpClient.GetStringAsync("https://api.publicapis.org/random?auth=null");
+                var result = await _httpClient.GetStringAsync(URL);
                 responce.IsSuccess = true;
                 responce.Payload = result;
             }
@@ -90,12 +90,12 @@ namespace ZuumTask1
             _tableClient = logTableStorageClient.GetTableClient();
         }
 
-        public async Task LogAsync(ApiResponse response) 
+        public async Task LogAsync(ApiResponse response, string GUID) 
         {
             var log = new LogEntity
             {
                 PartitionKey = "Log",
-                RowKey = Guid.NewGuid().ToString(),
+                RowKey = GUID,
                 Timestamp = DateTime.UtcNow,
                 IsSuccess = response.IsSuccess,
                 ErrorMessage = response.ErrorMessage
@@ -132,9 +132,9 @@ namespace ZuumTask1
             _containerClient = payloadBlobStorageClient.GetContainerClient();   
         }
 
-        public async Task StorePayloadAsync(string payload)
+        public async Task StorePayloadAsync(string payload, string GUID)
         {
-            string blobName = Guid.NewGuid().ToString() + ".txt";
+            string blobName = GUID;
             string filePath = Path.Combine(Path.GetTempPath(), blobName);
 
             File.WriteAllText(filePath, payload);            

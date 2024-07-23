@@ -16,6 +16,7 @@ namespace ZuumTask1
         private readonly IBlobStorageService _blobStorageService;
 
         private readonly ILogger _logger;
+        private readonly string URL = Environment.GetEnvironmentVariable("URL");
 
         public FetchDataFunction(ILoggerFactory loggerFactory, IApiService apiService, ILoggingService loggingService, IBlobStorageService blobStorageService)
         {
@@ -29,16 +30,18 @@ namespace ZuumTask1
         [FunctionName("FetchDataFunction")]
         public async Task Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
         {
-            var result = await _apiService.FetchDataAsync();
+            
+            string GUID = Guid.NewGuid().ToString();
+            var result = await _apiService.FetchDataAsync(URL);
 
             if (result.IsSuccess)
             {
-                await _loggingService.LogAsync(result);
-                await _blobStorageService.StorePayloadAsync(result.Payload);
+                await _loggingService.LogAsync(result, GUID);
+                await _blobStorageService.StorePayloadAsync(result.Payload, GUID);
             }
             else
             {
-                await _loggingService.LogAsync(result);
+                await _loggingService.LogAsync(result, GUID);
             }
 
         }

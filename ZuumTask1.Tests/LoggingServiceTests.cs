@@ -10,6 +10,7 @@ namespace ZuumTask1.Tests
         private Mock<LoggingService> _loggingService;
         private Mock<LogTableStorageClient> _logTableStorageClient;
         private Mock<TableClient> _mockTableClient;
+        
 
         [TestMethod]
         public async Task LogAsync_ShouldAddLogEntity()
@@ -18,6 +19,7 @@ namespace ZuumTask1.Tests
             _logTableStorageClient = new Mock<LogTableStorageClient>("UseDevelopmentStorage=true;", "LoggingAttemptResults");
 
             _loggingService = new Mock<LoggingService>(_logTableStorageClient.Object);
+            string GUID = Guid.NewGuid().ToString();
 
             // Arrange
             var response = new ApiResponse
@@ -28,7 +30,7 @@ namespace ZuumTask1.Tests
 
 
             // Act
-            await _loggingService.Object.LogAsync(response);
+            await _loggingService.Object.LogAsync(response, GUID);
 
             // Assert
             _loggingService.VerifyAll();

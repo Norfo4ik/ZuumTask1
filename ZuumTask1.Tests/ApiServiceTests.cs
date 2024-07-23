@@ -9,9 +9,8 @@ namespace ZuumTask1.Tests
     {
         private Mock<HttpMessageHandler>? _msgHandler;
         private ApiService _apiService;
-        string _baseAddress = "https://api.publicapis.org/";
         private HttpClient _httpClient;
-        //private ApiResponse _apiResponse;
+        private string URL = "https://api.publicapis.org/random?auth=null";
 
         [TestInitialize]
         public void Initialize()
@@ -28,6 +27,7 @@ namespace ZuumTask1.Tests
             // Arrange
             var expectedContent = "some data";
             var mockedProtected = _msgHandler.Protected();
+            
 
             var setupApiRequest = mockedProtected.Setup<Task<HttpResponseMessage>>(
                 "SendAsync",
@@ -45,7 +45,7 @@ namespace ZuumTask1.Tests
             apiMockedResponse.Verifiable();
 
             // Act
-            var response = await _apiService.FetchDataAsync();
+            var response = await _apiService.FetchDataAsync(URL);
 
             // Assert
             Assert.IsTrue(response.IsSuccess);
@@ -69,7 +69,7 @@ namespace ZuumTask1.Tests
             var apiMockedResponse = setupApiRequest.ThrowsAsync(new HttpRequestException(expectedErrorMessage));
 
             // Act
-            var response = await _apiService.FetchDataAsync();
+            var response = await _apiService.FetchDataAsync(URL);
 
             // Assert
             Assert.IsFalse(response.IsSuccess);

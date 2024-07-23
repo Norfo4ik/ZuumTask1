@@ -8,7 +8,7 @@ namespace ZuumTask1
 {
     public interface IApiService
     {
-        Task<ApiResponse> FetchDataAsync();
+        Task<ApiResponse> FetchDataAsync(string URL);
     }
 
     public class ApiResponse
@@ -21,7 +21,7 @@ namespace ZuumTask1
 
     public interface ILoggingService
     {
-        Task LogAsync(ApiResponse response);
+        Task LogAsync(ApiResponse response, string GUID);
         Task <IEnumerable<LogEntity>> GetLogsAsync(string from,  string to);
     }
 
@@ -37,7 +37,7 @@ namespace ZuumTask1
 
     public interface IBlobStorageService
     {
-        Task StorePayloadAsync(string payload);
+        Task StorePayloadAsync(string payload, string GUID);
         Task GetPayloadAsync(List<string> blobs);
     }
 }
