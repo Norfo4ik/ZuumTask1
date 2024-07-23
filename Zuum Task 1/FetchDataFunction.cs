@@ -1,37 +1,48 @@
-using System.IO;
 using System.Net.Http;
 using Microsoft.Azure.WebJobs;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Azure.Functions.Extensions.DependencyInjection;
-using System.Reflection;
+using System.Threading.Tasks;
+using System;
+using System.Collections.Generic;
+using Microsoft.Extensions.Configuration;
 
-namespace Zuum_Task_1
+namespace ZuumTask1
 {
-    public class Startup : FunctionsStartup
-    {
-        public override void Configure(IFunctionsHostBuilder builder)
-        {
-            var configuration = new ConfigurationBuilder()
-                .SetBasePath(Directory.GetCurrentDirectory())
-                .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-                .AddUserSecrets(Assembly.GetExecutingAssembly(), true)
-                .AddEnvironmentVariables()
-                .Build();
-
-            builder.Services.AddSingleton<IConfiguration>(configuration);
-        }
-    }
-
     public class FetchDataFunction
     {
-        static HttpClient httpClient = new HttpClient();
 
-        [FunctionName("Function1")]
-        public async void Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
+        private readonly IApiService _apiService;
+        private readonly ILoggingService _loggingService;
+        private readonly IBlobStorageService _blobStorageService;
+
+        private readonly ILogger _logger;
+        private readonly string URL = Environment.GetEnvironmentVariable("URL");
+
+        public FetchDataFunction(ILoggerFactory loggerFactory, IApiService apiService, ILoggingService loggingService, IBlobStorageService blobStorageService)
+        {
+            _logger = loggerFactory.CreateLogger<FetchDataFunction>();
+            _apiService = apiService;
+            _loggingService = loggingService;
+            _blobStorageService = blobStorageService;
+        }
+
+
+        [FunctionName("FetchDataFunction")]
+        public async Task Run([TimerTrigger("0 */1 * * * *")]TimerInfo myTimer, ILogger log)
         {
             
+            string GUID = Guid.NewGuid().ToString();
+            var result = await _apiService.FetchDataAsync(URL);
+
+            if (result.IsSuccess)
+            {
+                await _loggingService.LogAsync(result, GUID);
+                await _blobStorageService.StorePayloadAsync(result.Payload, GUID);
+            }
+            else
+            {
+                await _loggingService.LogAsync(result, GUID);
+            }
 
         }
     }
