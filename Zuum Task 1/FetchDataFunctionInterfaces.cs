@@ -38,6 +38,6 @@ namespace ZuumTask1
     public interface IBlobStorageService
     {
         Task StorePayloadAsync(string payload, string GUID);
-        Task GetPayloadAsync(List<string> blobs);
+        Task<string> GetPayloadAsync(string ID);
     }
 }

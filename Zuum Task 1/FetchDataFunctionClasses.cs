@@ -8,6 +8,7 @@ using Azure;
 using Azure.Storage.Blobs;
 using System.IO;
 using Azure.Storage.Blobs.Models;
+using System.Reflection.Metadata;
 
 namespace ZuumTask1
 {
@@ -145,31 +146,18 @@ namespace ZuumTask1
         }
 
 
-        public async Task GetPayloadAsync(List<string> blobs)
+        public async Task<string> GetPayloadAsync(string Id)
         {
-            foreach (var blob in blobs) 
+            string data = String.Empty;
+            BlobClient blobClient = _containerClient.GetBlobClient(Id);
+            if (await blobClient.ExistsAsync())
             {
-                string filePath = Path.Combine(Path.GetTempPath(), blob);
-                BlobClient blobClient = _containerClient.GetBlobClient(blob);
-                BlobDownloadInfo download = await blobClient.DownloadAsync();
-
-                using (var fileStream = File.OpenWrite(filePath))
-                {
-                    await download.Content.CopyToAsync(fileStream);
-                }
+                var download = await blobClient.DownloadAsync();
+                using var streamReader = new StreamReader(download.Value.Content);
+                data = await streamReader.ReadToEndAsync();
             }
-        }
-
-        public async Task<List<string>> ListBlobsAsync()
-        {
-            List<string> blobList = new List<string>();            
-
-            await foreach (var blobItems in _containerClient.GetBlobsAsync())
-            {
-                blobList.Add(blobItems.Name);
-            }
-
-            return blobList;
+            
+            return data;
         }
     }
 }
