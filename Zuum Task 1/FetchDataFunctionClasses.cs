@@ -104,12 +104,12 @@ namespace ZuumTask1
             await _tableClient.AddEntityAsync(log);        
         }
 
-        public async Task<IEnumerable<LogEntity>> GetLogsAsync(string from, string to) 
+        public async Task<List<LogEntity>> GetLogsAsync(string from, string to) 
         {             
             var fromTimestamp = DateTime.Parse(from);
             var toTimestamp = DateTime.Parse(to);
 
-            Pageable<LogEntity> logs = _tableClient.Query<LogEntity>(filter: $"Timestamp gt '{fromTimestamp:O}' and Timestamp lt '{toTimestamp:O}'");
+             Pageable<LogEntity> logs = _tableClient.Query<LogEntity>(filter: $"Timestamp gt '{fromTimestamp:O}' and Timestamp lt '{toTimestamp:O}'");
 
              return logs.Select(log => new LogEntity
              {                
