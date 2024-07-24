@@ -22,7 +22,7 @@ namespace ZuumTask1
     public interface ILoggingService
     {
         Task LogAsync(ApiResponse response, string GUID);
-        Task <IEnumerable<LogEntity>> GetLogsAsync(string from,  string to);
+        Task <List<LogEntity>> GetLogsAsync(string from,  string to);
     }
 
     public class LogEntity : ITableEntity
