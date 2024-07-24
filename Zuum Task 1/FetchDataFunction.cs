@@ -15,12 +15,10 @@ namespace ZuumTask1
         private readonly ILoggingService _loggingService;
         private readonly IBlobStorageService _blobStorageService;
 
-        private readonly ILogger _logger;
         private readonly string URL = Environment.GetEnvironmentVariable("URL");
 
-        public FetchDataFunction(ILoggerFactory loggerFactory, IApiService apiService, ILoggingService loggingService, IBlobStorageService blobStorageService)
+        public FetchDataFunction(IApiService apiService, ILoggingService loggingService, IBlobStorageService blobStorageService)
         {
-            _logger = loggerFactory.CreateLogger<FetchDataFunction>();
             _apiService = apiService;
             _loggingService = loggingService;
             _blobStorageService = blobStorageService;
