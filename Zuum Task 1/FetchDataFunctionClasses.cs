@@ -13,7 +13,7 @@ using System.Reflection.Metadata;
 namespace ZuumTask1
 {
 
-    public class PayloadBlobStorageClient
+    public class PayloadBlobStorageClient : IPayloadBlobStorageClient
     {
         private readonly BlobContainerClient _containerClient;
 
@@ -128,7 +128,7 @@ namespace ZuumTask1
     {
         private readonly BlobContainerClient _containerClient;
 
-        public BlobStorageService(PayloadBlobStorageClient payloadBlobStorageClient) 
+        public BlobStorageService(IPayloadBlobStorageClient payloadBlobStorageClient) 
         {
             _containerClient = payloadBlobStorageClient.GetContainerClient();   
         }
@@ -143,6 +143,8 @@ namespace ZuumTask1
             BlobClient blobClient = _containerClient.GetBlobClient(blobName);
 
             await blobClient.UploadAsync(filePath);
+
+            File.Delete(filePath);
         }
 
 

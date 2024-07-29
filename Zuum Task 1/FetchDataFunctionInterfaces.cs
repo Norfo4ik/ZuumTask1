@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
 
 namespace ZuumTask1
 {
@@ -39,5 +40,10 @@ namespace ZuumTask1
     {
         Task StorePayloadAsync(string payload, string GUID);
         Task<string> GetPayloadAsync(string ID);
+    }
+
+    public interface IPayloadBlobStorageClient
+    {
+        BlobContainerClient GetContainerClient();
     }
 }
